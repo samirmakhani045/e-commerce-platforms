@@ -14,6 +14,7 @@ export async function payNow(req, res) {
         message: error.message,
         data: {
           invalidItems: error.invalidItems ?? [],
+          conflict: error.conflict ?? (error.invalidItems?.length ? 'stock' : null),
         },
       });
     }

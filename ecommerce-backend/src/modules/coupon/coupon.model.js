@@ -164,7 +164,7 @@ export async function isCouponHeldByAnotherUser(connection, couponId, userId) {
        AND reserved_by_user_id IS NOT NULL
        AND reserved_until IS NOT NULL
        AND reserved_until > UTC_TIMESTAMP()
-       AND LOWER(reserved_by_user_id) <> LOWER(?)
+       AND LOWER(TRIM(reserved_by_user_id)) <> LOWER(TRIM(?))
      LIMIT 1`,
     [couponId, userId],
   );
@@ -185,7 +185,7 @@ export async function reserveCoupon(connection, couponId, userId, reservationSec
          status = 'available'
          OR (
            status = 'reserved'
-           AND LOWER(reserved_by_user_id) = LOWER(?)
+           AND LOWER(TRIM(reserved_by_user_id)) = LOWER(TRIM(?))
          )
          OR (
            status = 'reserved'
@@ -223,14 +223,36 @@ export async function getCouponSecondsRemaining(connection, couponId, userId) {
      FROM coupons
      WHERE id = ?
        AND status = 'reserved'
-       AND LOWER(reserved_by_user_id) = LOWER(?)
+       AND LOWER(TRIM(reserved_by_user_id)) = LOWER(TRIM(?))
        AND reserved_until IS NOT NULL
        AND reserved_until > UTC_TIMESTAMP()
      LIMIT 1`,
     [couponId, userId],
   );
 
-  return Number(rows[0]?.secondsRemaining ?? 0);
+  const raw = rows[0]?.secondsRemaining;
+  return raw == null ? 0 : Number(raw);
+}
+
+/** Active hold time on the row (UTC), without filtering by user — use after holder match in app code. */
+export async function getActiveReservedHoldSeconds(connection, couponId) {
+  const [rows] = await connection.query(
+    `SELECT
+       GREATEST(
+         0,
+         TIMESTAMPDIFF(SECOND, UTC_TIMESTAMP(), reserved_until)
+       ) AS secondsRemaining
+     FROM coupons
+     WHERE id = ?
+       AND status = 'reserved'
+       AND reserved_until IS NOT NULL
+       AND reserved_until > UTC_TIMESTAMP()
+     LIMIT 1`,
+    [couponId],
+  );
+
+  const raw = rows[0]?.secondsRemaining;
+  return raw == null ? 0 : Number(raw);
 }
 
 export async function redeemCoupon(connection, couponId, orderId) {

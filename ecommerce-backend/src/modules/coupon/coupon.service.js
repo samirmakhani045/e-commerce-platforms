@@ -2,11 +2,11 @@ import { randomBytes, randomUUID } from 'crypto';
 import pool from '../../config/db.js';
 import { countPaidOrders } from '../order/order.model.js';
 import {
-  clearCouponReservation,
   findCouponByCode,
   findCouponByCodeForUpdate,
   clearExpiredReservationForCoupon,
   findCouponReservedUntil,
+  getActiveReservedHoldSeconds,
   getCouponSecondsRemaining,
   findMilestoneCouponBySeq,
   findMilestoneCouponForUpdate,
@@ -93,7 +93,10 @@ function isSameUserId(storedUserId, currentUserId) {
     return false;
   }
 
-  return String(storedUserId).toLowerCase() === String(currentUserId).toLowerCase();
+  return (
+    String(storedUserId).trim().toLowerCase()
+    === String(currentUserId).trim().toLowerCase()
+  );
 }
 
 function isReservationExpired(reservedUntil) {
@@ -542,6 +545,8 @@ export async function reserveCheckoutCoupon(userId) {
 }
 
 export async function resolveCouponDiscount(connection, userId, couponCode, subtotal) {
+
+  console.log('couponCode', couponCode,userId);
   if (!couponCode) {
     return { discountAmount: 0, appliedCoupon: null, couponId: null };
   }
@@ -552,8 +557,6 @@ export async function resolveCouponDiscount(connection, userId, couponCode, subt
     return { discountAmount: 0, appliedCoupon: null, couponId: null };
   }
 
-  await releaseExpiredCouponReservations(connection);
-
   let coupon = await findCouponByCodeForUpdate(connection, normalizedCode);
 
   if (!coupon) {
@@ -562,10 +565,8 @@ export async function resolveCouponDiscount(connection, userId, couponCode, subt
     throw error;
   }
 
-  if (coupon.status === 'reserved' && isReservationExpired(coupon.reserved_until)) {
-    await clearCouponReservation(connection, coupon.id);
-    coupon = await findCouponByCodeForUpdate(connection, normalizedCode);
-  }
+  await clearExpiredReservationForCoupon(connection, coupon.id);
+  coupon = await findCouponByCodeForUpdate(connection, normalizedCode);
 
   if (!coupon) {
     const error = new Error('Invalid coupon code');
@@ -579,18 +580,57 @@ export async function resolveCouponDiscount(connection, userId, couponCode, subt
     throw error;
   }
 
+  if (coupon.source === 'milestone') {
+    const holderMatches =
+      coupon.status === 'reserved'
+      && isSameUserId(coupon.reserved_by_user_id, userId);
+
+    if (holderMatches) {
+      let secondsRemaining = await getCouponSecondsRemaining(
+        connection,
+        coupon.id,
+        userId,
+      );
+
+      if (secondsRemaining <= 0) {
+        secondsRemaining = await getActiveReservedHoldSeconds(connection, coupon.id);
+      }
+
+      if (secondsRemaining > 0) {
+        const discountAmount = computeDiscount(subtotal, coupon);
+        return {
+          discountAmount,
+          appliedCoupon: coupon.code,
+          couponId: coupon.id,
+        };
+      }
+
+      const error = new Error('Coupon has expired');
+      error.statusCode = 409;
+      error.conflict = 'coupon_expired';
+      throw error;
+    }
+
+    console.log('couponCode', couponCode,userId,coupon);
+    if (coupon.status === 'reserved') {
+      const error = new Error('Coupon is reserved for another shopper');
+      error.statusCode = 409;
+      error.conflict = 'coupon_held_by_other';
+      throw error;
+    }
+
+    const error = new Error('Coupon has expired');
+    error.statusCode = 409;
+    error.conflict = 'coupon_expired';
+    throw error;
+  }
+
   if (isReservationActive(coupon)) {
     if (!isSameUserId(coupon.reserved_by_user_id, userId)) {
       const error = new Error('Coupon is reserved for another shopper');
       error.statusCode = 409;
       throw error;
     }
-  }
-
-  if (coupon.source === 'milestone' && coupon.status === 'available') {
-    const error = new Error('Milestone coupon must be claimed on checkout before payment');
-    error.statusCode = 409;
-    throw error;
   }
 
   const discountAmount = computeDiscount(subtotal, coupon);

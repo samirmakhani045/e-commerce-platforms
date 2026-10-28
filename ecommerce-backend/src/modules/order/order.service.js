@@ -76,6 +76,7 @@ export async function placeOrder(userId, items, couponCode) {
     if (invalidItems.length > 0) {
       const error = new Error('Some items are no longer available in the requested quantity');
       error.statusCode = 409;
+      error.conflict = 'stock';
       error.invalidItems = invalidItems;
       throw error;
     }
