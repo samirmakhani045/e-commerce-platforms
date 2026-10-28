@@ -1,0 +1,27 @@
+<div
+  class="app-quantity-control"
+  [class.app-quantity-control--compact]="compact()"
+  (click)="$event.stopPropagation()"
+>
+  <button
+    mat-icon-button
+    type="button"
+    class="app-qty-circle app-qty-circle--minus"
+    aria-label="Decrease quantity"
+    (click)="decreaseClick.emit()"
+  >
+    <mat-icon>remove</mat-icon>
+  </button>
+
+  <span class="app-qty-value">{{ quantity() }}</span>
+
+  <button
+    mat-icon-button
+    type="button"
+    class="app-qty-circle app-qty-circle--plus"
+    aria-label="Increase quantity"
+    (click)="increaseClick.emit()"
+  >
+    <mat-icon>add</mat-icon>
+  </button>
+</div>

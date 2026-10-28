@@ -1,0 +1,69 @@
+<app-dialog-layout title="Your cart" icon="shopping_cart" (closed)="closeDialog()">
+  @if (isLoading()) {
+    <div class="app-empty-state">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>Loading cart...</p>
+    </div>
+  } @else if (loadError()) {
+    <div class="app-empty-state">
+      <mat-icon aria-hidden="true">error_outline</mat-icon>
+      <p>{{ loadError() }}</p>
+    </div>
+  } @else if (cartLines().length === 0) {
+    <div class="app-empty-state">
+      <mat-icon aria-hidden="true">remove_shopping_cart</mat-icon>
+      <p>Your cart is empty.</p>
+      <span class="empty-hint">Add products from the store to see them here.</span>
+    </div>
+  } @else {
+    <ul class="cart-line-list">
+      @for (line of cartLines(); track line.product.id) {
+        <li class="cart-line-item">
+          <img
+            [src]="line.product.imageUrl"
+            [alt]="line.product.name"
+            class="cart-line-image"
+            loading="lazy"
+          />
+          <div class="cart-line-info">
+            <h3 class="cart-line-title">{{ line.product.name }}</h3>
+            <p class="cart-line-unit-price">
+              {{ line.product.sellingPrice | currency: 'USD' }} each
+            </p>
+          </div>
+          <app-quantity-stepper
+            class="cart-line-stepper"
+            [compact]="true"
+            [quantity]="line.quantity"
+            (increaseClick)="onIncrease(line)"
+            (decreaseClick)="onDecrease(line)"
+          />
+          <span class="cart-line-total app-price-accent">
+            {{ line.lineTotal | currency: 'USD' }}
+          </span>
+        </li>
+      }
+    </ul>
+
+    <section class="app-summary-card cart-summary" aria-label="Order summary">
+      <div class="app-summary-row">
+        <span>Items</span>
+        <span>{{ itemCount() }}</span>
+      </div>
+      <div class="app-summary-row app-summary-row--total">
+        <span>Subtotal</span>
+        <span>{{ subtotal() | currency: 'USD' }}</span>
+      </div>
+    </section>
+  }
+
+  <button
+    dialogFooter
+    mat-flat-button
+    type="button"
+    class="app-dialog-action-btn"
+    (click)="closeDialog()"
+  >
+    Continue shopping
+  </button>
+</app-dialog-layout>

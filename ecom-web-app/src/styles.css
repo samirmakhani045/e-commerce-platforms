@@ -1,4 +1,5 @@
 @import '@angular/material/prebuilt-themes/indigo-pink.css';
+@import './app/shared/styles/app-ui.css';
 
 :root {
   --app-primary: #1b4965;
@@ -12,6 +13,7 @@
   --app-border: #d9e2ec;
   --app-radius-pill: 999px;
   --app-radius-card: 12px;
+  --app-radius-thumb: 6px;
 }
 
 html,

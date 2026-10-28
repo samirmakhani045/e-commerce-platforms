@@ -36,11 +36,6 @@
   opacity: 0.95;
 }
 
-.btn-header-outline {
-  color: #fff !important;
-  border-color: rgba(255, 255, 255, 0.75) !important;
-}
-
 .sign-in-btn mat-icon {
   margin-right: 0.25rem;
 }
@@ -134,25 +129,8 @@
 }
 
 .cart-action-btn {
+  display: block;
   width: 100%;
-  height: 42px;
-  min-height: 42px;
-  max-height: 42px;
-}
-
-.btn-secondary {
-  background-color: var(--app-secondary) !important;
-  color: #fff !important;
-  border-radius: var(--app-radius-pill);
-}
-
-.btn-secondary:hover {
-  background-color: var(--app-secondary-dark) !important;
-}
-
-.btn-primary-solid {
-  background-color: var(--app-primary) !important;
-  color: #fff !important;
 }
 
 .add-to-cart-btn {
@@ -160,57 +138,10 @@
   align-items: center;
   justify-content: center;
   gap: 0.25rem;
-  border-radius: var(--app-radius-pill);
-}
-
-.quantity-control {
-  display: grid;
-  grid-template-columns: 42px 1fr 42px;
-  align-items: center;
-  gap: 0.5rem;
   width: 100%;
   height: 42px;
-  padding: 0 4px;
-  border: 1px solid var(--app-border);
-  border-radius: var(--app-radius-pill);
-  background: #fff;
-}
-
-.qty-step-btn {
-  width: 42px;
-  min-width: 42px;
-  height: 34px;
-  min-height: 34px;
-  padding: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--app-radius-pill);
-}
-
-.qty-step-minus {
-  color: var(--app-primary) !important;
-  border-color: var(--app-primary) !important;
-}
-
-.qty-step-plus {
-  border-radius: var(--app-radius-pill);
-}
-
-.qty-step-btn mat-icon {
-  margin: 0;
-  font-size: 20px;
-  width: 20px;
-  height: 20px;
-}
-
-.qty-value {
-  text-align: center;
-  font-size: 1.125rem;
-  font-weight: 600;
-  line-height: 42px;
-  user-select: none;
-  color: var(--app-primary);
+  min-height: 42px;
+  max-height: 42px;
 }
 
 .selected-panel {

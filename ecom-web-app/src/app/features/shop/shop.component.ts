@@ -9,14 +9,18 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { Product } from '../../core/models/product.model';
 import { AuthService } from '../../core/services/auth.service';
+import { CartService } from '../../core/services/cart.service';
 import { ProductService } from '../../core/services/product.service';
+import { CartDialogComponent } from '../cart/cart-dialog.component';
 import { LoginDialogComponent } from '../login/login-dialog.component';
-import { getCartQuantity, CartQuantityPipe } from '../../shared/pipes/cart-quantity.pipe';
+import { CartQuantityPipe } from '../../shared/pipes/cart-quantity.pipe';
+import { QuantityStepperComponent } from '../../shared/components/quantity-stepper/quantity-stepper.component';
 import { StockLimitDialogComponent } from './stock-limit-dialog.component';
 
 type LoginIntent =
   | { type: 'addToCart'; productId: string }
-  | { type: 'selectProduct'; productId: string };
+  | { type: 'selectProduct'; productId: string }
+  | { type: 'openCart' };
 
 @Component({
   selector: 'app-shop',
@@ -30,6 +34,7 @@ type LoginIntent =
     MatDialogModule,
     MatProgressSpinnerModule,
     CartQuantityPipe,
+    QuantityStepperComponent,
   ],
   templateUrl: './shop.component.html',
   styleUrl: './shop.component.css',
@@ -37,6 +42,7 @@ type LoginIntent =
 export class ShopComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly productService = inject(ProductService);
+  private readonly cartService = inject(CartService);
   private readonly dialog = inject(MatDialog);
 
   private pendingLoginIntent: LoginIntent | null = null;
@@ -44,10 +50,10 @@ export class ShopComponent implements OnInit {
   protected readonly products = signal<Product[]>([]);
   protected readonly isLoading = signal(true);
   protected readonly loadError = signal('');
-  protected readonly cartQuantities = signal<Record<string, number>>({});
-  protected readonly cartCount = signal(0);
   protected readonly selectedProduct = signal<Product | null>(null);
 
+  protected readonly cartQuantities = this.cartService.quantities;
+  protected readonly cartCount = this.cartService.cartCount;
   protected readonly currentUser = this.authService.currentUser;
   protected readonly isLoggedIn = this.authService.isLoggedIn;
 
@@ -72,10 +78,23 @@ export class ShopComponent implements OnInit {
     });
   }
 
+  protected openCartDialog(): void {
+    if (!this.isLoggedIn()) {
+      this.openLoginDialog({ type: 'openCart' });
+      return;
+    }
+
+    this.dialog.open(CartDialogComponent, {
+      width: '480px',
+      maxWidth: '95vw',
+      panelClass: 'app-dialog-panel',
+      autoFocus: false,
+    });
+  }
+
   protected logout(): void {
     this.authService.logout();
-    this.cartQuantities.set({});
-    this.cartCount.set(0);
+    this.cartService.clear();
     this.selectedProduct.set(null);
   }
 
@@ -96,43 +115,41 @@ export class ShopComponent implements OnInit {
       return;
     }
 
-    this.setProductQuantity(product, 1);
+    this.addFirstToCart(product);
   }
 
-  protected onIncreaseQuantity(product: Product, event: MouseEvent): void {
-    event.stopPropagation();
+  protected onIncreaseQuantity(product: Product, event?: MouseEvent): void {
+    event?.stopPropagation();
 
     if (!this.isLoggedIn()) {
       this.openLoginDialog({ type: 'addToCart', productId: product.id });
       return;
     }
 
-    const current = getCartQuantity(this.cartQuantities(), product.id);
+    const result = this.cartService.increase(product);
 
-    if (current >= product.quantity) {
+    if (result === 'stock_limit') {
       this.openStockLimitDialog(product.quantity);
-      return;
     }
-
-    this.setProductQuantity(product, current + 1);
   }
 
-  protected onDecreaseQuantity(product: Product, event: MouseEvent): void {
-    event.stopPropagation();
+  protected onDecreaseQuantity(product: Product, event?: MouseEvent): void {
+    event?.stopPropagation();
 
     if (!this.isLoggedIn()) {
       this.openLoginDialog();
       return;
     }
 
-    const current = getCartQuantity(this.cartQuantities(), product.id);
+    this.cartService.decrease(product);
+  }
 
-    if (current <= 1) {
-      this.removeProductFromCart(product.id);
-      return;
+  private addFirstToCart(product: Product): void {
+    const result = this.cartService.setQuantity(product, 1);
+
+    if (result === 'stock_limit') {
+      this.openStockLimitDialog(product.quantity);
     }
-
-    this.setProductQuantity(product, current - 1);
   }
 
   private completePendingLoginIntent(): void {
@@ -140,48 +157,26 @@ export class ShopComponent implements OnInit {
       return;
     }
 
-    const product = this.products().find(
-      (item) => item.id === this.pendingLoginIntent?.productId,
-    );
-
-    if (!product) {
+    if (this.pendingLoginIntent.type === 'openCart') {
+      this.openCartDialog();
       return;
     }
 
-    if (this.pendingLoginIntent.type === 'addToCart') {
-      this.setProductQuantity(product, 1);
+    const intent = this.pendingLoginIntent;
+
+    if (intent.type === 'addToCart' || intent.type === 'selectProduct') {
+      const product = this.products().find((item) => item.id === intent.productId);
+
+      if (!product) {
+        return;
+      }
+
+      if (intent.type === 'addToCart') {
+        this.addFirstToCart(product);
+      } else {
+        this.selectedProduct.set(product);
+      }
     }
-
-    if (this.pendingLoginIntent.type === 'selectProduct') {
-      this.selectedProduct.set(product);
-    }
-  }
-
-  private setProductQuantity(product: Product, quantity: number): void {
-    if (quantity > product.quantity) {
-      this.openStockLimitDialog(product.quantity);
-      return;
-    }
-
-    this.cartQuantities.update((current) => ({
-      ...current,
-      [product.id]: quantity,
-    }));
-    this.syncCartCount();
-  }
-
-  private removeProductFromCart(productId: string): void {
-    this.cartQuantities.update((current) => {
-      const next = { ...current };
-      delete next[productId];
-      return next;
-    });
-    this.syncCartCount();
-  }
-
-  private syncCartCount(): void {
-    const total = Object.values(this.cartQuantities()).reduce((sum, qty) => sum + qty, 0);
-    this.cartCount.set(total);
   }
 
   private openStockLimitDialog(maxQuantity: number): void {

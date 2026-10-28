@@ -14,6 +14,7 @@
       aria-label="Shopping cart"
       [matBadge]="cartCount()"
       [matBadgeHidden]="cartCount() === 0 || !isLoggedIn()"
+      (click)="openCartDialog()"
     >
       <mat-icon>shopping_cart</mat-icon>
     </button>
@@ -84,27 +85,12 @@
                 Add to cart
               </button>
             } @else {
-              <div class="quantity-control cart-action-btn" (click)="$event.stopPropagation()">
-                <button
-                  mat-stroked-button
-                  type="button"
-                  class="qty-step-btn qty-step-minus"
-                  aria-label="Decrease quantity"
-                  (click)="onDecreaseQuantity(product, $event)"
-                >
-                  <mat-icon>remove</mat-icon>
-                </button>
-                <span class="qty-value">{{ quantityInCart }}</span>
-                <button
-                  mat-flat-button
-                  type="button"
-                  class="qty-step-btn qty-step-plus btn-primary-solid"
-                  aria-label="Increase quantity"
-                  (click)="onIncreaseQuantity(product, $event)"
-                >
-                  <mat-icon>add</mat-icon>
-                </button>
-              </div>
+              <app-quantity-stepper
+                class="cart-action-btn"
+                [quantity]="quantityInCart"
+                (increaseClick)="onIncreaseQuantity(product)"
+                (decreaseClick)="onDecreaseQuantity(product)"
+              />
             }
           </mat-card-actions>
         </mat-card>

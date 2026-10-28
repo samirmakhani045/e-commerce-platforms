@@ -1,0 +1,222 @@
+/* Shared buttons */
+.btn-secondary {
+  background-color: var(--app-secondary) !important;
+  color: #fff !important;
+  border-radius: var(--app-radius-pill);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: var(--app-secondary-dark) !important;
+}
+
+.btn-primary-solid {
+  background-color: var(--app-primary) !important;
+  color: #fff !important;
+  border-radius: var(--app-radius-pill);
+}
+
+.btn-header-outline {
+  color: #fff !important;
+  border-color: rgba(255, 255, 255, 0.75) !important;
+}
+
+.app-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  width: 100%;
+  height: 44px;
+  border-radius: var(--app-radius-pill);
+  font-weight: 500;
+}
+
+.app-action-btn--secondary {
+  background-color: var(--app-secondary) !important;
+  color: #fff !important;
+}
+
+.app-action-btn--primary {
+  background-color: var(--app-primary) !important;
+  color: #fff !important;
+}
+
+/* Quantity stepper — full-width bar (matches add-to-cart), circular +/- */
+.app-quantity-control {
+  display: grid;
+  grid-template-columns: 36px 1fr 36px;
+  align-items: center;
+  gap: 0.25rem;
+  width: 100%;
+  height: 42px;
+  min-height: 42px;
+  max-height: 42px;
+  padding: 0 4px;
+  box-sizing: border-box;
+  border: 2px solid var(--app-primary);
+  border-radius: var(--app-radius-pill);
+  background: var(--app-card);
+}
+
+/* Compact stepper — cart rows (matches thumbnail height & corner radius) */
+.app-quantity-control--compact {
+  width: 118px;
+  min-width: 118px;
+  max-width: 118px;
+  height: 56px;
+  min-height: 56px;
+  max-height: 56px;
+  grid-template-columns: 28px 1fr 28px;
+  padding: 0 3px;
+  border-width: 1px;
+  border-color: var(--app-border);
+  border-radius: var(--app-radius-thumb);
+}
+
+.app-quantity-control--compact .app-qty-circle.mat-mdc-icon-button {
+  --mdc-icon-button-state-layer-size: 26px;
+  width: 26px;
+  height: 26px;
+}
+
+.app-quantity-control--compact .app-qty-circle.mat-mdc-icon-button .mat-mdc-button-touch-target {
+  width: 26px;
+  height: 26px;
+}
+
+.app-quantity-control--compact .app-qty-circle mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+}
+
+.app-quantity-control--compact .app-qty-circle--minus {
+  border-width: 1px;
+  box-shadow: none;
+}
+
+.app-quantity-control--compact .app-qty-circle--plus {
+  box-shadow: none;
+}
+
+.app-quantity-control--compact .app-qty-value {
+  font-size: 0.9375rem;
+  line-height: 1;
+}
+
+.app-qty-circle.mat-mdc-icon-button {
+  --mdc-icon-button-state-layer-size: 34px;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  margin: 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.app-qty-circle.mat-mdc-icon-button:hover {
+  transform: scale(1.03);
+}
+
+.app-qty-circle.mat-mdc-icon-button .mat-mdc-button-touch-target {
+  width: 34px;
+  height: 34px;
+}
+
+.app-qty-circle mat-icon {
+  margin: 0;
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  line-height: 20px;
+}
+
+.app-qty-circle--minus {
+  color: var(--app-primary) !important;
+  border: 2px solid var(--app-primary);
+  background: var(--app-card) !important;
+  box-shadow: 0 1px 3px rgba(27, 73, 101, 0.12);
+}
+
+.app-qty-circle--minus:hover {
+  background: rgba(27, 73, 101, 0.06) !important;
+}
+
+.app-qty-circle--plus {
+  color: #fff !important;
+  background: var(--app-primary) !important;
+  border: 2px solid var(--app-primary);
+  box-shadow: 0 2px 6px rgba(27, 73, 101, 0.25);
+}
+
+.app-qty-circle--plus:hover {
+  background: var(--app-primary-dark) !important;
+  border-color: var(--app-primary-dark);
+}
+
+.app-qty-value {
+  text-align: center;
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 42px;
+  user-select: none;
+  color: var(--app-primary);
+}
+
+/* Summary blocks */
+.app-summary-card {
+  margin-top: 1rem;
+  padding: 1rem;
+  border-radius: var(--app-radius-card);
+  background: var(--app-surface);
+  border: 1px solid var(--app-border);
+}
+
+.app-summary-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 0.9375rem;
+  color: var(--app-text-muted);
+}
+
+.app-summary-row + .app-summary-row {
+  margin-top: 0.5rem;
+}
+
+.app-summary-row--total {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--app-border);
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: var(--app-primary);
+}
+
+.app-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 2rem 1rem;
+  text-align: center;
+  color: var(--app-text-muted);
+}
+
+.app-empty-state mat-icon {
+  font-size: 2.5rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  color: var(--app-secondary-dark);
+  opacity: 0.85;
+}
+
+.app-price-accent {
+  color: var(--app-secondary-dark);
+  font-weight: 700;
+}
