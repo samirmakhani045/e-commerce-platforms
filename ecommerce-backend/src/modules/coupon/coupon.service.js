@@ -611,7 +611,6 @@ export async function resolveCouponDiscount(connection, userId, couponCode, subt
       throw error;
     }
 
-    console.log('couponCode', couponCode,userId,coupon);
     if (coupon.status === 'reserved') {
       const error = new Error('Coupon is reserved for another shopper');
       error.statusCode = 409;
