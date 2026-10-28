@@ -1,7 +1,13 @@
 import express from 'express';
 import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import pool from './config/db.js';
 import apiRoutes from './routes/index.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const adminPublicDir = path.join(__dirname, '../public/admin');
 
 const app = express();
 
@@ -14,9 +20,16 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use('/api', apiRoutes);
 
+app.use('/admin', express.static(adminPublicDir));
+
+app.get('/admin/*splat', (req, res) => {
+  res.sendFile(path.join(adminPublicDir, 'index.html'));
+});
+
 app.get('/', (req, res) => {
   res.json({
     message: 'Ecommerce API is running',
+    adminPanel: '/admin',
   });
 });
 

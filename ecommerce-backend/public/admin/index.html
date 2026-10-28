@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ecommerce Admin</title>
+    <link rel="stylesheet" href="/admin/admin.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" defer></script>
+    <script src="/admin/admin.js" type="module"></script>
+  </head>
+  <body>
+    <div id="app">
+      <section id="login-view" class="view">
+        <div class="login-card">
+          <div class="brand">
+            <span class="brand-mark" aria-hidden="true"></span>
+            <div>
+              <h1>Admin panel</h1>
+              <p>Sign in with an admin account to manage products and reports.</p>
+            </div>
+          </div>
+
+          <form id="login-form" class="stack">
+            <label>
+              Email
+              <input type="email" name="email" autocomplete="username" required />
+            </label>
+            <label>
+              Password
+              <input type="password" name="password" autocomplete="current-password" required />
+            </label>
+            <p id="login-error" class="form-error" role="alert" hidden></p>
+            <button type="submit" class="btn btn-primary">Sign in</button>
+          </form>
+        </div>
+      </section>
+
+      <section id="admin-view" class="view" hidden>
+        <header class="admin-header">
+          <div class="brand brand--compact">
+            <span class="brand-mark" aria-hidden="true"></span>
+            <strong>Ecommerce Admin</strong>
+          </div>
+          <nav class="admin-nav" aria-label="Admin sections">
+            <button type="button" class="nav-btn is-active" data-tab="products">Products</button>
+            <button type="button" class="nav-btn" data-tab="reports">Reports</button>
+          </nav>
+          <div class="header-actions">
+            <span id="admin-email" class="muted"></span>
+            <button type="button" id="logout-btn" class="btn btn-ghost">Log out</button>
+          </div>
+        </header>
+
+        <main class="admin-main">
+          <section id="products-panel" class="panel">
+            <div class="panel-head">
+              <div>
+                <h2>Products</h2>
+                <p class="muted">Add, edit, or remove catalog items. Stock changes broadcast to the store.</p>
+              </div>
+              <button type="button" id="add-product-btn" class="btn btn-secondary">Add product</button>
+            </div>
+
+            <p id="products-message" class="banner" role="status" hidden></p>
+
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Product</th>
+                    <th>Stock</th>
+                    <th>Purchase</th>
+                    <th>Selling</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="products-table-body"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section id="reports-panel" class="panel" hidden>
+            <div class="panel-head">
+              <div>
+                <h2>Reports</h2>
+                <p class="muted">Last 7 days of orders, revenue, and profit.</p>
+              </div>
+              <button type="button" id="refresh-reports-btn" class="btn btn-ghost">Refresh</button>
+            </div>
+
+            <p id="reports-message" class="banner" role="status" hidden></p>
+
+            <div class="kpi-grid" id="kpi-grid"></div>
+
+            <div class="charts-grid">
+              <article class="chart-card">
+                <h3>Revenue &amp; profit (7 days)</h3>
+                <canvas id="revenue-chart" height="120"></canvas>
+              </article>
+              <article class="chart-card">
+                <h3>Orders per day</h3>
+                <canvas id="orders-chart" height="120"></canvas>
+              </article>
+            </div>
+
+            <article class="recent-card">
+              <h3>Recent orders</h3>
+              <div class="table-wrap">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Order</th>
+                      <th>Total</th>
+                      <th>Discount</th>
+                      <th>Profit</th>
+                      <th>Coupon</th>
+                      <th>Date</th>
+                    </tr>
+                  </thead>
+                  <tbody id="recent-orders-body"></tbody>
+                </table>
+              </div>
+            </article>
+          </section>
+        </main>
+      </section>
+    </div>
+
+    <dialog id="product-dialog" class="product-dialog">
+      <form id="product-form" method="dialog" class="dialog-card">
+        <header class="dialog-header">
+          <h2 id="product-dialog-title">Add product</h2>
+          <button type="button" class="icon-btn" id="close-product-dialog" aria-label="Close">&times;</button>
+        </header>
+
+        <div class="dialog-body stack">
+          <label>
+            Name
+            <input name="name" required maxlength="255" />
+          </label>
+          <label>
+            Description
+            <textarea name="description" rows="3" required></textarea>
+          </label>
+          <label>
+            Image URL
+            <input name="imageUrl" type="url" required />
+          </label>
+          <div class="form-row">
+            <label>
+              Quantity
+              <input name="quantity" type="number" min="0" step="1" required />
+            </label>
+            <label>
+              Purchase price ($)
+              <input name="purchasePrice" type="number" min="0" step="0.01" required />
+            </label>
+            <label>
+              Selling price ($)
+              <input name="sellingPrice" type="number" min="0" step="0.01" required />
+            </label>
+          </div>
+          <p id="product-form-error" class="form-error" role="alert" hidden></p>
+        </div>
+
+        <footer class="dialog-footer">
+          <button type="button" class="btn btn-ghost" id="cancel-product-dialog">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="save-product-btn">Save</button>
+        </footer>
+      </form>
+    </dialog>
+  </body>
+</html>
