@@ -9,6 +9,7 @@ import {
   insertOrder,
   insertOrderItem,
 } from './order.model.js';
+import { broadcastProductStockUpdates } from '../../socket/index.js';
 
 const COUPONS = {
   SAVE10: { type: 'percent', value: 10 },
@@ -157,6 +158,8 @@ export async function placeOrder(userId, items, couponCode) {
       couponCode: appliedCoupon,
     });
 
+    const stockUpdates = [];
+
     for (const line of orderItems) {
       await insertOrderItem(connection, {
         id: randomUUID(),
@@ -172,9 +175,16 @@ export async function placeOrder(userId, items, couponCode) {
       });
 
       await decrementProductQuantity(connection, line.product.id, line.quantity);
+
+      stockUpdates.push({
+        productId: line.product.id,
+        name: line.product.name,
+        quantity: Number(line.product.quantity) - line.quantity,
+      });
     }
 
     await connection.commit();
+    broadcastProductStockUpdates(stockUpdates);
 
     return {
       orderId,

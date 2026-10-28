@@ -1,5 +1,5 @@
 import { CurrencyPipe } from '@angular/common';
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, effect, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -9,12 +9,11 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Router, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { InvalidStockItem } from '../../core/models/order.model';
-import { Product } from '../../core/models/product.model';
 import { AuthService } from '../../core/services/auth.service';
 import { CartFlowService } from '../../core/services/cart-flow.service';
 import { CartService } from '../../core/services/cart.service';
 import { OrderService } from '../../core/services/order.service';
-import { ProductService } from '../../core/services/product.service';
+import { ProductCatalogService } from '../../core/services/product-catalog.service';
 
 @Component({
   selector: 'app-checkout',
@@ -33,19 +32,20 @@ import { ProductService } from '../../core/services/product.service';
 })
 export class CheckoutComponent implements OnInit {
   private readonly cartService = inject(CartService);
-  private readonly productService = inject(ProductService);
+  private readonly catalog = inject(ProductCatalogService);
   private readonly orderService = inject(OrderService);
   private readonly cartFlowService = inject(CartFlowService);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly formBuilder = inject(FormBuilder);
 
-  protected readonly isLoading = signal(true);
   protected readonly isPaying = signal(false);
-  protected readonly loadError = signal('');
   protected readonly payError = signal('');
   protected readonly successMessage = signal('');
-  protected readonly products = signal<Product[]>([]);
+
+  protected readonly products = this.catalog.products;
+  protected readonly isLoading = this.catalog.isLoading;
+  protected readonly loadError = this.catalog.loadError;
 
   protected readonly cartLines = computed(() => this.cartService.getLines(this.products()));
   protected readonly subtotal = computed(() => this.cartService.getSubtotal(this.cartLines()));
@@ -56,21 +56,24 @@ export class CheckoutComponent implements OnInit {
     couponCode: [''],
   });
 
-  ngOnInit(): void {
-    this.productService.getProducts().subscribe({
-      next: (products) => {
-        this.products.set(products);
-        this.isLoading.set(false);
+  constructor() {
+    effect(() => {
+      if (this.isLoading()) {
+        return;
+      }
 
-        if (this.cartLines().length === 0) {
-          this.router.navigate(['/']);
-        }
-      },
-      error: () => {
-        this.loadError.set('Unable to load checkout details.');
-        this.isLoading.set(false);
-      },
+      if (this.successMessage()) {
+        return;
+      }
+
+      if (this.cartLines().length === 0) {
+        this.router.navigate(['/']);
+      }
     });
+  }
+
+  ngOnInit(): void {
+    this.catalog.load();
   }
 
   protected payNow(): void {
@@ -84,16 +87,19 @@ export class CheckoutComponent implements OnInit {
 
     const couponCode = this.couponForm.controls.couponCode.value.trim() || null;
     const items = this.cartService.buildCheckoutItems(this.products());
+    this.cartService.beginCheckoutPay(items.map((item) => item.productId));
 
     this.orderService.payNow({ items, couponCode }).subscribe({
       next: (response) => {
-        this.isPaying.set(false);
         this.cartService.clear();
+        this.cartService.endCheckoutPay();
+        this.isPaying.set(false);
         this.successMessage.set(
           `Order ${response.data.orderId.slice(0, 8)} placed. Total paid: $${response.data.total.toFixed(2)}`,
         );
       },
       error: (error: HttpErrorResponse) => {
+        this.cartService.endCheckoutPay();
         this.isPaying.set(false);
 
         if (error.status === 409) {

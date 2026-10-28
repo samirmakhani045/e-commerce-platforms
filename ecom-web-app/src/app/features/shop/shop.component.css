@@ -148,6 +148,13 @@
   max-height: 42px;
 }
 
+.out-of-stock-btn {
+  background: #e4e7eb !important;
+  color: #7b8794 !important;
+  border-radius: var(--app-radius-pill);
+  cursor: not-allowed;
+}
+
 .selected-panel {
   margin-top: 2rem;
   padding: 1rem 1.25rem;

@@ -12,8 +12,8 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { Product } from '../../core/models/product.model';
 import { AuthService } from '../../core/services/auth.service';
 import { CartService } from '../../core/services/cart.service';
-import { ProductService } from '../../core/services/product.service';
 import { CartFlowService } from '../../core/services/cart-flow.service';
+import { ProductCatalogService } from '../../core/services/product-catalog.service';
 import { CartDialogComponent } from '../cart/cart-dialog.component';
 import { LoginDialogComponent } from '../login/login-dialog.component';
 import { CartQuantityPipe } from '../../shared/pipes/cart-quantity.pipe';
@@ -45,7 +45,7 @@ type LoginIntent =
 })
 export class ShopComponent implements OnInit {
   private readonly authService = inject(AuthService);
-  private readonly productService = inject(ProductService);
+  private readonly catalog = inject(ProductCatalogService);
   private readonly cartService = inject(CartService);
   private readonly dialog = inject(MatDialog);
   private readonly router = inject(Router);
@@ -53,11 +53,11 @@ export class ShopComponent implements OnInit {
 
   private pendingLoginIntent: LoginIntent | null = null;
 
-  protected readonly products = signal<Product[]>([]);
-  protected readonly isLoading = signal(true);
-  protected readonly loadError = signal('');
   protected readonly selectedProduct = signal<Product | null>(null);
 
+  protected readonly products = this.catalog.products;
+  protected readonly isLoading = this.catalog.isLoading;
+  protected readonly loadError = this.catalog.loadError;
   protected readonly cartQuantities = this.cartService.quantities;
   protected readonly cartCount = this.cartService.cartCount;
   protected readonly currentUser = this.authService.currentUser;
@@ -65,7 +65,7 @@ export class ShopComponent implements OnInit {
   protected readonly isAdmin = this.authService.isAdmin;
 
   ngOnInit(): void {
-    this.loadProducts();
+    this.catalog.load();
     this.handleCartFlowRequest();
 
     this.router.events
@@ -122,6 +122,10 @@ export class ShopComponent implements OnInit {
 
   protected onAddToCart(product: Product, event: MouseEvent): void {
     event.stopPropagation();
+
+    if (product.quantity === 0) {
+      return;
+    }
 
     if (!this.isLoggedIn()) {
       this.openLoginDialog({ type: 'addToCart', productId: product.id });
@@ -207,23 +211,7 @@ export class ShopComponent implements OnInit {
       return;
     }
 
-    this.loadProducts();
+    this.catalog.load(true);
     this.openCartDialog(cartMessage || undefined);
-  }
-
-  private loadProducts(): void {
-    this.isLoading.set(true);
-    this.loadError.set('');
-
-    this.productService.getProducts().subscribe({
-      next: (products) => {
-        this.products.set(products);
-        this.isLoading.set(false);
-      },
-      error: () => {
-        this.loadError.set('Could not load products. Make sure the API server is running.');
-        this.isLoading.set(false);
-      },
-    });
   }
 }

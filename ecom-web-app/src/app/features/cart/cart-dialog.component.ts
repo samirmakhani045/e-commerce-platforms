@@ -6,9 +6,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Router } from '@angular/router';
 import { CartLine } from '../../core/models/cart.model';
-import { Product } from '../../core/models/product.model';
 import { CartService } from '../../core/services/cart.service';
-import { ProductService } from '../../core/services/product.service';
+import { ProductCatalogService } from '../../core/services/product-catalog.service';
 import { AppDialogLayoutComponent } from '../../shared/components/app-dialog-layout/app-dialog-layout.component';
 import { QuantityStepperComponent } from '../../shared/components/quantity-stepper/quantity-stepper.component';
 import { StockLimitDialogComponent } from '../shop/stock-limit-dialog.component';
@@ -33,32 +32,24 @@ export interface CartDialogData {
 })
 export class CartDialogComponent implements OnInit {
   private readonly cartService = inject(CartService);
-  private readonly productService = inject(ProductService);
+  private readonly catalog = inject(ProductCatalogService);
   private readonly dialog = inject(MatDialog);
   private readonly dialogRef = inject(MatDialogRef<CartDialogComponent>);
   private readonly router = inject(Router);
   private readonly dialogData = inject<CartDialogData>(MAT_DIALOG_DATA, { optional: true });
 
-  protected readonly isLoading = signal(true);
-  protected readonly loadError = signal('');
-  protected readonly products = signal<Product[]>([]);
   protected readonly bannerMessage = signal(this.dialogData?.errorMessage ?? '');
+
+  protected readonly products = this.catalog.products;
+  protected readonly isLoading = this.catalog.isLoading;
+  protected readonly loadError = this.catalog.loadError;
 
   protected readonly cartLines = computed(() => this.cartService.getLines(this.products()));
   protected readonly subtotal = computed(() => this.cartService.getSubtotal(this.cartLines()));
   protected readonly itemCount = this.cartService.cartCount;
 
   ngOnInit(): void {
-    this.productService.getProducts().subscribe({
-      next: (products) => {
-        this.products.set(products);
-        this.isLoading.set(false);
-      },
-      error: () => {
-        this.loadError.set('Unable to load cart items. Please try again.');
-        this.isLoading.set(false);
-      },
-    });
+    this.catalog.load();
   }
 
   protected closeDialog(): void {

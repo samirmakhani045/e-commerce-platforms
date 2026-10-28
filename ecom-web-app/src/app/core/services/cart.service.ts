@@ -5,6 +5,9 @@ import { getCartQuantity } from '../../shared/pipes/cart-quantity.pipe';
 
 @Injectable({ providedIn: 'root' })
 export class CartService {
+  /** Products in an in-flight Pay now request — skip socket cart warnings for these. */
+  private checkoutPayProductIds = new Set<string>();
+
   private readonly quantitiesSignal = signal<Record<string, number>>({});
 
   readonly quantities = this.quantitiesSignal.asReadonly();
@@ -71,6 +74,15 @@ export class CartService {
     return 'success';
   }
 
+  clampQuantity(productId: string, maxQuantity: number): void {
+    if (maxQuantity <= 0) {
+      this.remove(productId);
+      return;
+    }
+
+    this.patchQuantity(productId, maxQuantity);
+  }
+
   remove(productId: string): void {
     this.quantitiesSignal.update((current) => {
       const next = { ...current };
@@ -81,6 +93,18 @@ export class CartService {
 
   clear(): void {
     this.quantitiesSignal.set({});
+  }
+
+  beginCheckoutPay(productIds: string[]): void {
+    this.checkoutPayProductIds = new Set(productIds);
+  }
+
+  endCheckoutPay(): void {
+    this.checkoutPayProductIds.clear();
+  }
+
+  isCheckoutPayProduct(productId: string): boolean {
+    return this.checkoutPayProductIds.has(productId);
   }
 
   buildCheckoutItems(products: Product[]): { productId: string; quantity: number }[] {

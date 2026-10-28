@@ -79,7 +79,16 @@
             <p class="product-description">{{ product.description }}</p>
           </mat-card-content>
           <mat-card-actions class="product-card-actions">
-            @if (quantityInCart === 0) {
+            @if (product.quantity === 0) {
+              <button
+                mat-flat-button
+                type="button"
+                class="cart-action-btn add-to-cart-btn out-of-stock-btn"
+                disabled
+              >
+                Out of stock
+              </button>
+            } @else if (quantityInCart === 0) {
               <button
                 mat-flat-button
                 type="button"
