@@ -94,7 +94,8 @@ label {
 }
 
 input,
-textarea {
+textarea,
+select {
   padding: 0.65rem 0.75rem;
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -103,7 +104,8 @@ textarea {
 }
 
 input:focus,
-textarea:focus {
+textarea:focus,
+select:focus {
   outline: 2px solid rgba(27, 73, 101, 0.25);
   border-color: var(--primary);
 }
@@ -312,6 +314,22 @@ textarea:focus {
   box-shadow: var(--shadow);
 }
 
+.settings-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  box-shadow: var(--shadow);
+  margin-bottom: 1rem;
+}
+
+.panel-head--spaced {
+  margin-top: 1.5rem;
+}
+
+.table-wrap--spaced {
+  margin-top: 1rem;
+}
+
 .chart-card h3,
 .recent-card h3 {
   margin: 0 0 0.75rem;
@@ -367,6 +385,29 @@ textarea:focus {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.75rem;
+}
+
+.form-row--two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.milestone-status-note {
+  margin: 0 0 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: 10px;
+  background: #eef4f8;
+  color: var(--primary);
+  line-height: 1.45;
+}
+
+.milestone-status-note.is-blocked {
+  background: #fff7ed;
+  color: #9a3412;
+}
+
+input[readonly] {
+  background: #f1f5f9;
+  cursor: not-allowed;
 }
 
 .icon-btn {

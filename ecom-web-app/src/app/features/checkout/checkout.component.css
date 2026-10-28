@@ -29,6 +29,49 @@
   color: var(--app-text-muted);
 }
 
+.coupon-offer-banner {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  padding: 0.85rem 1rem;
+  margin-bottom: 1rem;
+  border-radius: 12px;
+  background: rgba(212, 163, 115, 0.18);
+  border: 1px solid rgba(212, 163, 115, 0.45);
+  color: var(--app-primary);
+}
+
+.coupon-offer-banner mat-icon {
+  color: var(--app-secondary);
+}
+
+.coupon-offer-banner p {
+  margin: 0.25rem 0 0;
+  color: var(--app-text-muted);
+  line-height: 1.45;
+}
+
+.coupon-countdown {
+  font-weight: 600;
+  color: var(--app-primary) !important;
+}
+
+.coupon-savings {
+  margin: 0.35rem 0 0 !important;
+  color: var(--app-primary) !important;
+  font-weight: 500;
+}
+
+.discount-row {
+  color: #2e7d32;
+}
+
+.coupon-wait-note {
+  margin: 0 0 1rem;
+  color: var(--app-text-muted);
+  line-height: 1.45;
+}
+
 .checkout-grid {
   display: grid;
   grid-template-columns: 1.2fr 0.8fr;

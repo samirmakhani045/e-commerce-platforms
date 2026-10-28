@@ -9,7 +9,18 @@ const logoutBtn = document.getElementById('logout-btn');
 const adminEmail = document.getElementById('admin-email');
 const navButtons = document.querySelectorAll('.nav-btn');
 const productsPanel = document.getElementById('products-panel');
+const couponsPanel = document.getElementById('coupons-panel');
 const reportsPanel = document.getElementById('reports-panel');
+const couponSettingsForm = document.getElementById('coupon-settings-form');
+const couponSettingsMessage = document.getElementById('coupon-settings-message');
+const createCouponForm = document.getElementById('create-coupon-form');
+const generateMilestoneBtn = document.getElementById('generate-milestone-btn');
+const milestonePercentDisplay = document.getElementById('milestone-percent-display');
+const couponSettingsSummary = document.getElementById('coupon-settings-summary');
+const milestoneGenerateSummary = document.getElementById('milestone-generate-summary');
+const milestoneStatusNote = document.getElementById('milestone-status-note');
+const couponsMessage = document.getElementById('coupons-message');
+const couponsTableBody = document.getElementById('coupons-table-body');
 const productsTableBody = document.getElementById('products-table-body');
 const productsMessage = document.getElementById('products-message');
 const reportsMessage = document.getElementById('reports-message');
@@ -149,10 +160,152 @@ function setActiveTab(tab) {
   });
 
   productsPanel.hidden = tab !== 'products';
+  couponsPanel.hidden = tab !== 'coupons';
   reportsPanel.hidden = tab !== 'reports';
+
+  if (tab === 'coupons') {
+    loadCouponAdmin();
+  }
 
   if (tab === 'reports') {
     loadReports();
+  }
+}
+
+function formatPreMilestoneCounts(n, examples = 4) {
+  return Array.from({ length: examples }, (_, index) => (index + 1) * n - 1).join(', ');
+}
+
+function formatMilestoneOrderNumbers(n, examples = 4) {
+  return Array.from({ length: examples }, (_, index) => (index + 1) * n).join(', ');
+}
+
+function applyCouponSettingsUi(settings) {
+  couponSettingsForm.elements.orderIntervalN.value = settings.orderIntervalN;
+  couponSettingsForm.elements.discountPercentX.value = settings.discountPercentX;
+  couponSettingsForm.elements.reservationSeconds.value = settings.reservationSeconds;
+  milestonePercentDisplay.value = `${settings.discountPercentX}% (from settings x)`;
+
+  couponSettingsSummary.innerHTML = `Every <strong>${settings.orderIntervalN}</strong> successful orders (system-wide) creates one milestone coupon for <strong>${settings.discountPercentX}%</strong> off. One coupon, one use, <strong>${settings.reservationSeconds}s</strong> checkout hold.`;
+
+  milestoneGenerateSummary.textContent = `Percent-only, one use. Allowed when paid orders are ${formatPreMilestoneCounts(
+    settings.orderIntervalN,
+  )}, … (n=${settings.orderIntervalN}). If you skip this, checkout auto-creates a code for orders ${formatMilestoneOrderNumbers(
+    settings.orderIntervalN,
+  )}, …`;
+}
+
+async function refreshMilestoneSection() {
+  const milestoneStatus = await apiRequest('/api/coupons/milestone-status');
+  applyCouponSettingsUi(milestoneStatus.settings);
+  renderMilestoneStatus(milestoneStatus);
+}
+
+async function loadCouponAdmin() {
+  showBanner(couponSettingsMessage, '');
+  showBanner(couponsMessage, '');
+
+  try {
+    const settings = await apiRequest('/api/coupons/settings');
+    applyCouponSettingsUi(settings);
+    await refreshMilestoneSection();
+
+    const coupons = await apiRequest('/api/coupons');
+    renderCouponsTable(coupons);
+  } catch (error) {
+    showBanner(couponSettingsMessage, error.message, true);
+  }
+}
+
+function renderMilestoneStatus(status) {
+  const paid = status.paidOrderCount ?? 0;
+  const n = status.settings?.orderIntervalN ?? 5;
+  const nextSlot = status.milestoneInfo?.nextOrderNumber;
+  const canGenerate = Boolean(status.canGenerateMilestone);
+
+  generateMilestoneBtn.disabled = !canGenerate;
+
+  if (canGenerate && nextSlot) {
+    milestoneStatusNote.classList.remove('is-blocked');
+    milestoneStatusNote.textContent = `Paid orders: ${paid}. You can generate the ${status.settings.discountPercentX}% coupon for system order #${nextSlot} now.`;
+    return;
+  }
+
+  milestoneStatusNote.classList.add('is-blocked');
+  milestoneStatusNote.textContent =
+    status.blockedReason ??
+    `Paid orders: ${paid}. Next milestone slot is order #${Math.ceil((paid + 1) / n) * n}.`;
+}
+
+function renderCouponsTable(coupons) {
+  couponsTableBody.innerHTML = '';
+
+  if (!coupons.length) {
+    couponsTableBody.innerHTML =
+      '<tr><td colspan="5">No coupons yet. Milestone coupons appear automatically at checkout.</td></tr>';
+    return;
+  }
+
+  for (const coupon of coupons) {
+    const discountLabel =
+      coupon.discountType === 'percent'
+        ? `${coupon.discountValue}%`
+        : formatMoney(coupon.discountValue);
+
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td><strong>${escapeHtml(coupon.code)}</strong></td>
+      <td>${discountLabel}</td>
+      <td>${escapeHtml(coupon.source)}</td>
+      <td>${escapeHtml(coupon.status)}</td>
+      <td>${coupon.reservedUntil ? formatDate(coupon.reservedUntil) : '—'}</td>
+    `;
+    couponsTableBody.appendChild(row);
+  }
+}
+
+async function saveCouponSettings(event) {
+  event.preventDefault();
+  showBanner(couponSettingsMessage, '');
+
+  const formData = new FormData(couponSettingsForm);
+
+  try {
+    const settings = await apiRequest('/api/coupons/settings', {
+      method: 'PUT',
+      body: JSON.stringify({
+        orderIntervalN: Number(formData.get('orderIntervalN')),
+        discountPercentX: Number(formData.get('discountPercentX')),
+        reservationSeconds: Number(formData.get('reservationSeconds')),
+      }),
+    });
+
+    applyCouponSettingsUi(settings);
+    await refreshMilestoneSection();
+    showBanner(couponSettingsMessage, 'Coupon settings saved.');
+  } catch (error) {
+    showBanner(couponSettingsMessage, error.message, true);
+  }
+}
+
+async function handleCreateCoupon(event) {
+  event.preventDefault();
+  showBanner(couponsMessage, '');
+
+  const formData = new FormData(createCouponForm);
+  const code = String(formData.get('code') ?? '').trim();
+
+  try {
+    await apiRequest('/api/coupons/generate-milestone', {
+      method: 'POST',
+      body: JSON.stringify(code ? { code } : {}),
+    });
+
+    createCouponForm.reset();
+    showBanner(couponsMessage, 'Milestone coupon generated (percent discount).');
+    await loadCouponAdmin();
+  } catch (error) {
+    showBanner(couponsMessage, error.message, true);
   }
 }
 
@@ -452,6 +605,8 @@ navButtons.forEach((button) => {
 
 addProductBtn.addEventListener('click', () => openProductDialog());
 refreshReportsBtn.addEventListener('click', () => loadReports());
+couponSettingsForm.addEventListener('submit', saveCouponSettings);
+createCouponForm.addEventListener('submit', handleCreateCoupon);
 productForm.addEventListener('submit', saveProduct);
 closeProductDialogBtn.addEventListener('click', closeProductDialog);
 cancelProductDialogBtn.addEventListener('click', closeProductDialog);

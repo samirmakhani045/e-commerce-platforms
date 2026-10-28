@@ -10,47 +10,13 @@ import {
   insertOrderItem,
 } from './order.model.js';
 import { broadcastProductStockUpdates } from '../../socket/index.js';
-
-const COUPONS = {
-  SAVE10: { type: 'percent', value: 10 },
-  WELCOME5: { type: 'flat', value: 5, minSubtotal: 20 },
-};
+import {
+  markCouponRedeemed,
+  resolveCouponDiscount,
+} from '../coupon/coupon.service.js';
 
 function roundMoney(value) {
   return Math.round(value * 100) / 100;
-}
-
-function calculateDiscount(subtotal, couponCode) {
-  if (!couponCode) {
-    return { discountAmount: 0, appliedCoupon: null };
-  }
-
-  const normalizedCode = couponCode.trim().toUpperCase();
-  const coupon = COUPONS[normalizedCode];
-
-  if (!coupon) {
-    const error = new Error('Invalid coupon code');
-    error.statusCode = 400;
-    throw error;
-  }
-
-  if (coupon.minSubtotal && subtotal < coupon.minSubtotal) {
-    const error = new Error(
-      `Coupon requires a minimum subtotal of $${coupon.minSubtotal.toFixed(2)}`,
-    );
-    error.statusCode = 400;
-    throw error;
-  }
-
-  let discountAmount = 0;
-
-  if (coupon.type === 'percent') {
-    discountAmount = roundMoney(subtotal * (coupon.value / 100));
-  } else {
-    discountAmount = roundMoney(Math.min(coupon.value, subtotal));
-  }
-
-  return { discountAmount, appliedCoupon: normalizedCode };
 }
 
 export async function placeOrder(userId, items, couponCode) {
@@ -140,7 +106,11 @@ export async function placeOrder(userId, items, couponCode) {
       });
     }
 
-    const { discountAmount, appliedCoupon } = calculateDiscount(subtotal, couponCode);
+    const {
+      discountAmount,
+      appliedCoupon,
+      couponId,
+    } = await resolveCouponDiscount(connection, userId, couponCode, subtotal);
     const total = roundMoney(Math.max(subtotal - discountAmount, 0));
     const grossProfit = roundMoney(total - totalCost);
 
@@ -157,6 +127,8 @@ export async function placeOrder(userId, items, couponCode) {
       grossProfit,
       couponCode: appliedCoupon,
     });
+
+    await markCouponRedeemed(connection, couponId, orderId);
 
     const stockUpdates = [];
 

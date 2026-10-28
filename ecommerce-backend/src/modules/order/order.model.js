@@ -1,3 +1,13 @@
+export async function countPaidOrders(connection) {
+  const [rows] = await connection.query(
+    `SELECT COUNT(*) AS orderCount
+     FROM orders
+     WHERE status = 'paid'`,
+  );
+
+  return Number(rows[0]?.orderCount ?? 0);
+}
+
 export async function findProductsForOrder(connection, productIds) {
   if (productIds.length === 0) {
     return [];

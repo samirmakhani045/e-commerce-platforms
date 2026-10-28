@@ -69,9 +69,13 @@
     mat-flat-button
     type="button"
     class="app-dialog-action-btn"
-    [disabled]="cartLines().length === 0"
+    [disabled]="cartLines().length === 0 || isProceedingToCheckout()"
     (click)="goToCheckout()"
   >
-    Proceed to checkout
+    @if (isProceedingToCheckout()) {
+      <mat-spinner diameter="22"></mat-spinner>
+    } @else {
+      Proceed to checkout
+    }
   </button>
 </app-dialog-layout>

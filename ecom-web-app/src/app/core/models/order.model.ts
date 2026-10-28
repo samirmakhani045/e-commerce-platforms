@@ -65,3 +65,34 @@ export interface ReportsResponse {
   message: string;
   data: ReportsDashboard;
 }
+
+export interface CheckoutCouponOffer {
+  code: string;
+  discountType: 'percent' | 'flat';
+  discountValue: number;
+  expiresAt: string;
+  secondsRemaining?: number;
+  reservedByUserId: string;
+  reservedForYou: boolean;
+  milestoneSeq: number;
+  nextOrderNumber: number;
+}
+
+export interface CheckoutCouponResult {
+  offer: CheckoutCouponOffer | null;
+  heldByUserId?: string | null;
+  paidOrderCount?: number;
+  nextMilestoneOrder?: number;
+  message?: string;
+  settings?: {
+    orderIntervalN: number;
+    discountPercentX: number;
+    reservationSeconds: number;
+  };
+}
+
+export interface CheckoutCouponResponse {
+  success: boolean;
+  message: string;
+  data: CheckoutCouponResult;
+}

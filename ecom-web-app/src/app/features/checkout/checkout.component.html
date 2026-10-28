@@ -51,9 +51,26 @@
             <span>Items</span>
             <span>{{ itemCount() }}</span>
           </div>
-          <div class="app-summary-row app-summary-row--total">
+          <div class="app-summary-row">
             <span>Subtotal</span>
             <span>{{ subtotal() | currency: 'USD' }}</span>
+          </div>
+          @if (discountAmount() > 0 && activeCouponOffer(); as offer) {
+            <div class="app-summary-row discount-row">
+              <span>
+                Discount
+                @if (offer.discountType === 'percent') {
+                  ({{ offer.discountValue }}% · {{ offer.code }})
+                } @else {
+                  ({{ offer.code }})
+                }
+              </span>
+              <span>-{{ discountAmount() | currency: 'USD' }}</span>
+            </div>
+          }
+          <div class="app-summary-row app-summary-row--total">
+            <span>Total</span>
+            <span>{{ orderTotal() | currency: 'USD' }}</span>
           </div>
         </div>
       </section>
@@ -62,12 +79,47 @@
         <h2>Payment</h2>
         <p class="muted">Dummy checkout — no real payment gateway.</p>
 
+        @if (couponNotice()) {
+          <div class="coupon-offer-banner" role="status">
+            <mat-icon aria-hidden="true">local_offer</mat-icon>
+            <div>
+              <strong>Limited milestone coupon applied</strong>
+              @if (activeCouponOffer(); as offer) {
+                <p class="coupon-savings">
+                  Code <strong>{{ offer.code }}</strong> —
+                  @if (offer.discountType === 'percent') {
+                    {{ offer.discountValue }}% off
+                  } @else {
+                    {{ offer.discountValue | currency: 'USD' }} off
+                  }
+                  @if (discountAmount() > 0) {
+                    (save {{ discountAmount() | currency: 'USD' }})
+                  }
+                </p>
+              }
+              <p>{{ couponNotice() }}</p>
+              @if (couponExpiresInSeconds() !== null) {
+                <p class="coupon-countdown">Expires in {{ couponExpiresInSeconds() }}s</p>
+              }
+            </div>
+          </div>
+        } @else if (couponHeldByOther()) {
+          <p class="coupon-wait-note">{{ couponHeldByOther() }}</p>
+        }
+
         <form [formGroup]="couponForm" class="coupon-form">
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Coupon code</mat-label>
-            <input matInput formControlName="couponCode" placeholder="Try SAVE10 or WELCOME5" />
+            <input
+              matInput
+              formControlName="couponCode"
+              placeholder="Auto-applied or enter admin code"
+              [readonly]="activeCouponOffer() !== null"
+            />
           </mat-form-field>
-          <p class="coupon-hint">SAVE10 = 10% off · WELCOME5 = $5 off (min $20)</p>
+          <p class="coupon-hint">
+            Milestone coupons are shared system-wide (one code, one use). Admin can also create manual codes.
+          </p>
         </form>
 
         @if (payError()) {

@@ -7,6 +7,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Router } from '@angular/router';
 import { CartLine } from '../../core/models/cart.model';
 import { CartService } from '../../core/services/cart.service';
+import { CheckoutCouponService } from '../../core/services/checkout-coupon.service';
 import { ProductCatalogService } from '../../core/services/product-catalog.service';
 import { AppDialogLayoutComponent } from '../../shared/components/app-dialog-layout/app-dialog-layout.component';
 import { QuantityStepperComponent } from '../../shared/components/quantity-stepper/quantity-stepper.component';
@@ -33,12 +34,14 @@ export interface CartDialogData {
 export class CartDialogComponent implements OnInit {
   private readonly cartService = inject(CartService);
   private readonly catalog = inject(ProductCatalogService);
+  private readonly checkoutCouponService = inject(CheckoutCouponService);
   private readonly dialog = inject(MatDialog);
   private readonly dialogRef = inject(MatDialogRef<CartDialogComponent>);
   private readonly router = inject(Router);
   private readonly dialogData = inject<CartDialogData>(MAT_DIALOG_DATA, { optional: true });
 
   protected readonly bannerMessage = signal(this.dialogData?.errorMessage ?? '');
+  protected readonly isProceedingToCheckout = signal(false);
 
   protected readonly products = this.catalog.products;
   protected readonly isLoading = this.catalog.isLoading;
@@ -57,12 +60,37 @@ export class CartDialogComponent implements OnInit {
   }
 
   protected goToCheckout(): void {
-    if (this.cartLines().length === 0) {
+    if (this.cartLines().length === 0 || this.isProceedingToCheckout()) {
       return;
     }
 
-    this.dialogRef.close();
-    this.router.navigate(['/checkout']);
+    this.isProceedingToCheckout.set(true);
+
+    this.checkoutCouponService.claimOnce().subscribe({
+      next: (result) => {
+        this.checkoutCouponService.setSnapshot(result);
+        this.isProceedingToCheckout.set(false);
+        this.dialogRef.close();
+        this.router.navigate(['/checkout'], {
+          state: {
+            checkoutCouponOffer: result.offer,
+            checkoutCouponMessage: result.message ?? '',
+          },
+        });
+      },
+      error: () => {
+        const emptyResult = { offer: null };
+        this.checkoutCouponService.setSnapshot(emptyResult);
+        this.isProceedingToCheckout.set(false);
+        this.dialogRef.close();
+        this.router.navigate(['/checkout'], {
+          state: {
+            checkoutCouponOffer: null,
+            checkoutCouponMessage: '',
+          },
+        });
+      },
+    });
   }
 
   protected onIncrease(line: CartLine): void {
