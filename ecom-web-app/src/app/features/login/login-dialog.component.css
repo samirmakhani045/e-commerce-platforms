@@ -1,0 +1,24 @@
+.dialog-hint {
+  margin: 0 0 1rem;
+  color: var(--app-text-muted);
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.error-text {
+  margin: 0.5rem 0 0;
+  color: #b3261e;
+  font-size: 0.875rem;
+}
+
+.app-dialog-action-btn mat-spinner {
+  display: inline-block;
+}

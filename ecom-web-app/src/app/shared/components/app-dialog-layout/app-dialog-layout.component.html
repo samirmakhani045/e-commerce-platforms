@@ -1,0 +1,27 @@
+<div class="app-dialog">
+  <header class="app-dialog-header">
+    <div class="app-dialog-heading">
+      @if (icon()) {
+        <mat-icon aria-hidden="true">{{ icon() }}</mat-icon>
+      }
+      <h2>{{ title() }}</h2>
+    </div>
+    <button
+      mat-icon-button
+      type="button"
+      class="app-dialog-close"
+      aria-label="Close dialog"
+      (click)="onClose()"
+    >
+      <mat-icon>close</mat-icon>
+    </button>
+  </header>
+
+  <mat-dialog-content class="app-dialog-body">
+    <ng-content />
+  </mat-dialog-content>
+
+  <footer class="app-dialog-footer">
+    <ng-content select="[dialogFooter]" />
+  </footer>
+</div>

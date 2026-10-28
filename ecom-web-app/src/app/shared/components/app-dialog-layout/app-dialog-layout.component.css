@@ -1,0 +1,54 @@
+.app-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1rem 0.75rem 1rem 1.25rem;
+  border-bottom: 1px solid var(--app-border);
+}
+
+.app-dialog-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.app-dialog-heading h2 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--app-primary);
+}
+
+.app-dialog-heading mat-icon {
+  color: var(--app-secondary-dark);
+  flex-shrink: 0;
+}
+
+.app-dialog-close {
+  color: var(--app-text-muted);
+}
+
+.app-dialog-body {
+  display: block;
+  padding: 1rem 1.25rem !important;
+  margin: 0;
+  max-height: 65vh;
+}
+
+.app-dialog-footer {
+  display: block;
+  padding: 0.75rem 1.25rem 1.25rem;
+  border-top: 1px solid var(--app-border);
+}
+
+.app-dialog-footer ::ng-deep .app-dialog-action-btn,
+.app-dialog-action-btn {
+  width: 100%;
+  height: 44px;
+  border-radius: var(--app-radius-pill);
+  background-color: var(--app-primary) !important;
+  color: #fff !important;
+  font-weight: 500;
+}

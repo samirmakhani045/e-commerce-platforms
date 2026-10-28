@@ -1,0 +1,121 @@
+<header class="shop-header">
+  <mat-toolbar class="toolbar toolbar-primary">
+    <span class="brand">
+      <mat-icon aria-hidden="true">storefront</mat-icon>
+      Ecom Store
+    </span>
+
+    <span class="toolbar-spacer"></span>
+
+    <button
+      mat-icon-button
+      type="button"
+      class="toolbar-icon-btn"
+      aria-label="Shopping cart"
+      [matBadge]="cartCount()"
+      [matBadgeHidden]="cartCount() === 0 || !isLoggedIn()"
+    >
+      <mat-icon>shopping_cart</mat-icon>
+    </button>
+
+    @if (isLoggedIn()) {
+      <span class="user-label">{{ currentUser()?.firstName }}</span>
+      <button mat-stroked-button type="button" class="btn-header-outline" (click)="logout()">
+        Logout
+      </button>
+    } @else {
+      <button
+        mat-stroked-button
+        type="button"
+        class="sign-in-btn btn-header-outline"
+        (click)="openLoginDialog()"
+      >
+        <mat-icon aria-hidden="true">login</mat-icon>
+        Sign in
+      </button>
+    }
+  </mat-toolbar>
+</header>
+
+<main class="shop-main">
+  <section class="intro">
+    <h1>Products</h1>
+    <p>Browse our catalog and add items to your cart.</p>
+  </section>
+
+  @if (isLoading()) {
+    <div class="state-panel">
+      <mat-spinner diameter="48"></mat-spinner>
+      <p>Loading products...</p>
+    </div>
+  } @else if (loadError()) {
+    <div class="state-panel error">
+      <mat-icon aria-hidden="true">error_outline</mat-icon>
+      <p>{{ loadError() }}</p>
+    </div>
+  } @else {
+    <div class="product-grid">
+      @for (product of products(); track product.id) {
+        @let quantityInCart = product.id | cartQuantity: cartQuantities();
+        <mat-card
+          class="product-card"
+          [class.selected]="selectedProduct()?.id === product.id"
+          (click)="onProductSelected(product)"
+        >
+          <img mat-card-image [src]="product.imageUrl" [alt]="product.name" loading="lazy" />
+          <mat-card-header>
+            <mat-card-title>{{ product.name }}</mat-card-title>
+            <mat-card-subtitle class="product-price">
+              {{ product.sellingPrice | currency: 'USD' }}
+            </mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content class="product-card-body">
+            <p class="product-description">{{ product.description }}</p>
+          </mat-card-content>
+          <mat-card-actions class="product-card-actions">
+            @if (quantityInCart === 0) {
+              <button
+                mat-flat-button
+                type="button"
+                class="cart-action-btn add-to-cart-btn btn-secondary"
+                (click)="onAddToCart(product, $event)"
+              >
+                <mat-icon aria-hidden="true">add_shopping_cart</mat-icon>
+                Add to cart
+              </button>
+            } @else {
+              <div class="quantity-control cart-action-btn" (click)="$event.stopPropagation()">
+                <button
+                  mat-stroked-button
+                  type="button"
+                  class="qty-step-btn qty-step-minus"
+                  aria-label="Decrease quantity"
+                  (click)="onDecreaseQuantity(product, $event)"
+                >
+                  <mat-icon>remove</mat-icon>
+                </button>
+                <span class="qty-value">{{ quantityInCart }}</span>
+                <button
+                  mat-flat-button
+                  type="button"
+                  class="qty-step-btn qty-step-plus btn-primary-solid"
+                  aria-label="Increase quantity"
+                  (click)="onIncreaseQuantity(product, $event)"
+                >
+                  <mat-icon>add</mat-icon>
+                </button>
+              </div>
+            }
+          </mat-card-actions>
+        </mat-card>
+      }
+    </div>
+
+    @if (selectedProduct(); as product) {
+      <section class="selected-panel">
+        <h2>Selected: {{ product.name }}</h2>
+        <p>{{ product.description }}</p>
+      </section>
+    }
+  }
+</main>

@@ -1,1 +1,52 @@
-/* You can add global styles to this file, and also import other style files */
+@import '@angular/material/prebuilt-themes/indigo-pink.css';
+
+:root {
+  --app-primary: #1b4965;
+  --app-primary-dark: #143651;
+  --app-secondary: #d4a373;
+  --app-secondary-dark: #bc8a5f;
+  --app-surface: #f0f4f8;
+  --app-card: #ffffff;
+  --app-text: #1f2933;
+  --app-text-muted: #52606d;
+  --app-border: #d9e2ec;
+  --app-radius-pill: 999px;
+  --app-radius-card: 12px;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: Roboto, 'Helvetica Neue', sans-serif;
+  background: var(--app-surface);
+  color: var(--app-text);
+}
+
+.mat-mdc-unelevated-button.mat-primary:not(:disabled),
+.mat-mdc-raised-button.mat-primary:not(:disabled) {
+  --mdc-protected-button-container-color: var(--app-primary);
+  --mat-protected-button-state-layer-color: var(--app-primary);
+}
+
+.mat-mdc-progress-spinner {
+  --mdc-circular-progress-active-indicator-color: var(--app-primary);
+}
+
+.toolbar-primary .mat-badge-content {
+  background: var(--app-secondary);
+  color: #fff;
+}
+
+.app-dialog-panel .mat-mdc-dialog-container .mdc-dialog__surface {
+  padding: 0;
+  border-radius: var(--app-radius-card);
+  overflow: hidden;
+}
+
+.app-dialog-panel .mat-mdc-dialog-content {
+  padding: 0;
+}
