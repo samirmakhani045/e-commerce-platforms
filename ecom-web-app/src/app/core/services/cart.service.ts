@@ -83,6 +83,13 @@ export class CartService {
     this.quantitiesSignal.set({});
   }
 
+  buildCheckoutItems(products: Product[]): { productId: string; quantity: number }[] {
+    return this.getLines(products).map((line) => ({
+      productId: line.product.id,
+      quantity: line.quantity,
+    }));
+  }
+
   private patchQuantity(productId: string, quantity: number): void {
     this.quantitiesSignal.update((current) => ({
       ...current,

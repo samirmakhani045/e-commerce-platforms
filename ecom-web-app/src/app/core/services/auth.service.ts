@@ -19,6 +19,7 @@ export class AuthService {
 
   readonly currentUser = computed(() => this.authState()?.user ?? null);
   readonly isLoggedIn = computed(() => this.authState() !== null);
+  readonly isAdmin = computed(() => this.authState()?.user.role === 'admin');
   readonly token = computed(() => this.authState()?.token ?? null);
 
   login(email: string, password: string) {

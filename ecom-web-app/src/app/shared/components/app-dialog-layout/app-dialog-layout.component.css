@@ -43,6 +43,13 @@
   border-top: 1px solid var(--app-border);
 }
 
+.app-dialog-footer-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
 .app-dialog-footer ::ng-deep .app-dialog-action-btn,
 .app-dialog-action-btn {
   width: 100%;
@@ -51,4 +58,10 @@
   background-color: var(--app-primary) !important;
   color: #fff !important;
   font-weight: 500;
+}
+
+.app-dialog-action-btn--outline {
+  background: transparent !important;
+  color: var(--app-primary) !important;
+  border: 2px solid var(--app-primary) !important;
 }

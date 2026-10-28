@@ -20,6 +20,11 @@
     </button>
 
     @if (isLoggedIn()) {
+      @if (isAdmin()) {
+        <a mat-stroked-button class="btn-header-outline reports-link" routerLink="/reports">
+          Reports
+        </a>
+      }
       <span class="user-label">{{ currentUser()?.firstName }}</span>
       <button mat-stroked-button type="button" class="btn-header-outline" (click)="logout()">
         Logout

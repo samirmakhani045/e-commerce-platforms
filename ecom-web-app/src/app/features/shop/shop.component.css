@@ -40,6 +40,10 @@
   margin-right: 0.25rem;
 }
 
+.reports-link {
+  text-decoration: none;
+}
+
 .shop-main {
   max-width: 1200px;
   margin: 0 auto;

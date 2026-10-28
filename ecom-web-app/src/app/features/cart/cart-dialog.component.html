@@ -16,6 +16,13 @@
       <span class="empty-hint">Add products from the store to see them here.</span>
     </div>
   } @else {
+    @if (bannerMessage()) {
+      <div class="cart-banner" role="alert">
+        <mat-icon aria-hidden="true">info</mat-icon>
+        <p>{{ bannerMessage() }}</p>
+      </div>
+    }
+
     <ul class="cart-line-list">
       @for (line of cartLines(); track line.product.id) {
         <li class="cart-line-item">
@@ -62,8 +69,9 @@
     mat-flat-button
     type="button"
     class="app-dialog-action-btn"
-    (click)="closeDialog()"
+    [disabled]="cartLines().length === 0"
+    (click)="goToCheckout()"
   >
-    Continue shopping
+    Proceed to checkout
   </button>
 </app-dialog-layout>

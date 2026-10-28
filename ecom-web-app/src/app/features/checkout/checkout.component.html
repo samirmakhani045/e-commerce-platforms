@@ -1,0 +1,93 @@
+<div class="checkout-page">
+  <header class="checkout-header">
+    <a routerLink="/" class="back-link">
+      <mat-icon aria-hidden="true">arrow_back</mat-icon>
+      Back to store
+    </a>
+    <h1>Checkout</h1>
+    <p class="checkout-subtitle">Review your order and complete payment (demo).</p>
+  </header>
+
+  @if (isLoading()) {
+    <div class="checkout-state">
+      <mat-spinner diameter="44"></mat-spinner>
+      <p>Loading checkout...</p>
+    </div>
+  } @else if (loadError()) {
+    <div class="checkout-state error">
+      <mat-icon>error_outline</mat-icon>
+      <p>{{ loadError() }}</p>
+    </div>
+  } @else if (successMessage()) {
+    <section class="checkout-card success-card">
+      <mat-icon aria-hidden="true">check_circle</mat-icon>
+      <h2>Payment successful</h2>
+      <p>{{ successMessage() }}</p>
+      <a mat-flat-button class="app-action-btn app-action-btn--primary" routerLink="/">
+        Continue shopping
+      </a>
+    </section>
+  } @else {
+    <div class="checkout-grid">
+      <section class="checkout-card">
+        <h2>Order summary</h2>
+        <p class="muted">Signed in as {{ currentUser()?.email }}</p>
+
+        <ul class="checkout-line-list">
+          @for (line of cartLines(); track line.product.id) {
+            <li class="checkout-line">
+              <img [src]="line.product.imageUrl" [alt]="line.product.name" />
+              <div>
+                <strong>{{ line.product.name }}</strong>
+                <span>{{ line.quantity }} × {{ line.product.sellingPrice | currency: 'USD' }}</span>
+              </div>
+              <span class="app-price-accent">{{ line.lineTotal | currency: 'USD' }}</span>
+            </li>
+          }
+        </ul>
+
+        <div class="app-summary-card">
+          <div class="app-summary-row">
+            <span>Items</span>
+            <span>{{ itemCount() }}</span>
+          </div>
+          <div class="app-summary-row app-summary-row--total">
+            <span>Subtotal</span>
+            <span>{{ subtotal() | currency: 'USD' }}</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="checkout-card payment-card">
+        <h2>Payment</h2>
+        <p class="muted">Dummy checkout — no real payment gateway.</p>
+
+        <form [formGroup]="couponForm" class="coupon-form">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Coupon code</mat-label>
+            <input matInput formControlName="couponCode" placeholder="Try SAVE10 or WELCOME5" />
+          </mat-form-field>
+          <p class="coupon-hint">SAVE10 = 10% off · WELCOME5 = $5 off (min $20)</p>
+        </form>
+
+        @if (payError()) {
+          <p class="pay-error" role="alert">{{ payError() }}</p>
+        }
+
+        <button
+          mat-flat-button
+          type="button"
+          class="app-action-btn app-action-btn--primary pay-btn"
+          [disabled]="isPaying()"
+          (click)="payNow()"
+        >
+          @if (isPaying()) {
+            <mat-spinner diameter="22"></mat-spinner>
+          } @else {
+            Pay now
+          }
+        </button>
+      </section>
+    </div>
+  }
+</div>

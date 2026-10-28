@@ -1,5 +1,7 @@
 import { CurrencyPipe } from '@angular/common';
 import { Component, inject, OnInit, signal } from '@angular/core';
+import { NavigationEnd, Router, RouterLink } from '@angular/router';
+import { filter } from 'rxjs';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -11,6 +13,7 @@ import { Product } from '../../core/models/product.model';
 import { AuthService } from '../../core/services/auth.service';
 import { CartService } from '../../core/services/cart.service';
 import { ProductService } from '../../core/services/product.service';
+import { CartFlowService } from '../../core/services/cart-flow.service';
 import { CartDialogComponent } from '../cart/cart-dialog.component';
 import { LoginDialogComponent } from '../login/login-dialog.component';
 import { CartQuantityPipe } from '../../shared/pipes/cart-quantity.pipe';
@@ -35,6 +38,7 @@ type LoginIntent =
     MatProgressSpinnerModule,
     CartQuantityPipe,
     QuantityStepperComponent,
+    RouterLink,
   ],
   templateUrl: './shop.component.html',
   styleUrl: './shop.component.css',
@@ -44,6 +48,8 @@ export class ShopComponent implements OnInit {
   private readonly productService = inject(ProductService);
   private readonly cartService = inject(CartService);
   private readonly dialog = inject(MatDialog);
+  private readonly router = inject(Router);
+  private readonly cartFlowService = inject(CartFlowService);
 
   private pendingLoginIntent: LoginIntent | null = null;
 
@@ -56,9 +62,15 @@ export class ShopComponent implements OnInit {
   protected readonly cartCount = this.cartService.cartCount;
   protected readonly currentUser = this.authService.currentUser;
   protected readonly isLoggedIn = this.authService.isLoggedIn;
+  protected readonly isAdmin = this.authService.isAdmin;
 
   ngOnInit(): void {
     this.loadProducts();
+    this.handleCartFlowRequest();
+
+    this.router.events
+      .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
+      .subscribe(() => this.handleCartFlowRequest());
   }
 
   protected openLoginDialog(intent: LoginIntent | null = null): void {
@@ -78,7 +90,7 @@ export class ShopComponent implements OnInit {
     });
   }
 
-  protected openCartDialog(): void {
+  protected openCartDialog(errorMessage?: string): void {
     if (!this.isLoggedIn()) {
       this.openLoginDialog({ type: 'openCart' });
       return;
@@ -89,6 +101,7 @@ export class ShopComponent implements OnInit {
       maxWidth: '95vw',
       panelClass: 'app-dialog-panel',
       autoFocus: false,
+      data: errorMessage ? { errorMessage } : undefined,
     });
   }
 
@@ -185,6 +198,17 @@ export class ShopComponent implements OnInit {
       panelClass: 'app-dialog-panel',
       data: { maxQuantity },
     });
+  }
+
+  private handleCartFlowRequest(): void {
+    const cartMessage = this.cartFlowService.consumeOpenCartRequest();
+
+    if (cartMessage === 'skip') {
+      return;
+    }
+
+    this.loadProducts();
+    this.openCartDialog(cartMessage || undefined);
   }
 
   private loadProducts(): void {

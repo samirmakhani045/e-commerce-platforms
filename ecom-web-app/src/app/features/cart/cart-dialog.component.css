@@ -79,3 +79,28 @@
 .empty-hint {
   font-size: 0.875rem;
 }
+
+.cart-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  padding: 0.625rem 0.75rem;
+  border-radius: var(--app-radius-thumb);
+  border: 1px solid #f0c36d;
+  background: #fff8e6;
+  color: #7a5b00;
+}
+
+.cart-banner p {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.35;
+}
+
+.cart-banner mat-icon {
+  font-size: 1.125rem;
+  width: 1.125rem;
+  height: 1.125rem;
+  margin-top: 0.125rem;
+}

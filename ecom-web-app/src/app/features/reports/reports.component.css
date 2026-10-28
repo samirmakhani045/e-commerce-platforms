@@ -1,0 +1,126 @@
+.reports-page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 2.5rem;
+}
+
+.reports-header h1 {
+  margin: 0;
+  color: var(--app-primary);
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--app-primary);
+  text-decoration: none;
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+}
+
+.muted {
+  color: var(--app-text-muted);
+}
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.kpi-card {
+  background: var(--app-card);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-card);
+  padding: 0.875rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.kpi-card span {
+  font-size: 0.8125rem;
+  color: var(--app-text-muted);
+}
+
+.kpi-card strong {
+  font-size: 1.125rem;
+  color: var(--app-primary);
+}
+
+.reports-card {
+  background: var(--app-card);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius-card);
+  padding: 1rem 1.125rem;
+  margin-bottom: 1rem;
+}
+
+.reports-card h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.0625rem;
+  color: var(--app-primary);
+}
+
+.chart-wrap {
+  height: 320px;
+}
+
+.orders-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.orders-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.625rem 0;
+  border-bottom: 1px solid var(--app-border);
+}
+
+.orders-list li:last-child {
+  border-bottom: none;
+}
+
+.orders-list strong {
+  display: block;
+  font-size: 0.875rem;
+}
+
+.orders-list span {
+  font-size: 0.75rem;
+  color: var(--app-text-muted);
+}
+
+.order-metrics {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.125rem;
+}
+
+.reports-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 3rem 1rem;
+  color: var(--app-text-muted);
+}
+
+.reports-state.error mat-icon {
+  color: #b3261e;
+}
+
+@media (max-width: 900px) {
+  .kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

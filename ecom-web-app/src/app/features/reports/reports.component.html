@@ -1,0 +1,73 @@
+<div class="reports-page">
+  <header class="reports-header">
+    <a routerLink="/" class="back-link">
+      <mat-icon aria-hidden="true">arrow_back</mat-icon>
+      Back to store
+    </a>
+    <h1>Sales reports</h1>
+    <p class="muted">Revenue, profit, and discount overview (last 7 days).</p>
+  </header>
+
+  @if (isLoading()) {
+    <div class="reports-state">
+      <mat-spinner diameter="44"></mat-spinner>
+      <p>Loading reports...</p>
+    </div>
+  } @else if (loadError()) {
+    <div class="reports-state error">
+      <mat-icon>error_outline</mat-icon>
+      <p>{{ loadError() }}</p>
+    </div>
+  } @else if (dashboard(); as data) {
+    <section class="kpi-grid">
+      <article class="kpi-card">
+        <span>Revenue</span>
+        <strong>{{ data.summary.revenue | currency: 'USD' }}</strong>
+      </article>
+      <article class="kpi-card">
+        <span>Profit</span>
+        <strong>{{ data.summary.totalProfit | currency: 'USD' }}</strong>
+      </article>
+      <article class="kpi-card">
+        <span>Discounts</span>
+        <strong>{{ data.summary.totalDiscount | currency: 'USD' }}</strong>
+      </article>
+      <article class="kpi-card">
+        <span>Orders</span>
+        <strong>{{ data.summary.orderCount }}</strong>
+      </article>
+    </section>
+
+    <section class="reports-card chart-card">
+      <h2>Performance chart</h2>
+      <div class="chart-wrap">
+        <canvas #revenueChart aria-label="Revenue profit and discount chart"></canvas>
+      </div>
+    </section>
+
+    <section class="reports-card">
+      <h2>Recent orders</h2>
+      @if (data.recentOrders.length === 0) {
+        <p class="muted">No orders yet. Complete a checkout to populate reports.</p>
+      } @else {
+        <ul class="orders-list">
+          @for (order of data.recentOrders; track order.id) {
+            <li>
+              <div>
+                <strong>#{{ order.id.slice(0, 8) }}</strong>
+                <span>{{ order.createdAt | date: 'medium' }}</span>
+              </div>
+              <div class="order-metrics">
+                <span>Total {{ order.total | currency: 'USD' }}</span>
+                <span>Profit {{ order.grossProfit | currency: 'USD' }}</span>
+                @if (order.discountAmount > 0) {
+                  <span>Discount -{{ order.discountAmount | currency: 'USD' }}</span>
+                }
+              </div>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  }
+</div>
